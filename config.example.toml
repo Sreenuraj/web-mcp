@@ -1,0 +1,89 @@
+# web-mcp configuration. Every key is optional; values shown are the defaults.
+# Env override: WEBMCP_<SECTION>__<KEY>=value   e.g. WEBMCP_LIMITS__DAILY_SEARCHES=50
+# API keys are NOT read from this file: use env (BRAVE_API_KEY, TAVILY_API_KEY, SERPER_API_KEY)
+# or the OS keychain (`web-mcp key set brave`).
+
+[providers]
+chain = ["searxng", "duckduckgo"]     # fallback order: searxng, duckduckgo, brave, tavily, serper
+searxng_url = "http://localhost:8888"
+timeout_seconds = 12
+breaker_seconds = 60                  # skip a failing provider for N seconds
+min_interval_seconds = 0.5
+
+[budget.quick]
+searches = 3
+fetches = 3
+output_tokens = 12000
+minutes = 5
+
+[budget.standard]
+searches = 8
+fetches = 10
+output_tokens = 40000
+minutes = 15
+
+[budget.deep]
+searches = 20
+fetches = 25
+output_tokens = 120000
+minutes = 40
+
+[limits]
+daily_searches = 100
+daily_fetches = 150
+max_sessions_per_hour = 10
+max_concurrent_sessions = 3
+max_results = 10
+max_fetch_tokens = 4000
+max_query_chars = 300
+max_sub_questions = 5
+per_domain_rps = 1.0
+
+[session]
+ttl_minutes = 120
+idle_minutes = 10
+
+[approval]
+modes = ["relay"]             # relay = agent asks you in the chat; optional: "elicitation" (in-client prompt), "deny"
+timeout_seconds = 55          # elicitation only
+approval_ttl_seconds = 600    # relay: validity of a pending request / recorded answer
+extend_factor = 0.5
+max_extensions = 3
+max_denials_per_session = 2
+denial_cooldown_seconds = 60
+
+[policy]
+drift_action = "approve"      # warn | approve | block
+drift_threshold = 0.15
+pii_action = "warn"           # warn | block | approve
+secret_action = "block"       # warn | block
+allow_arbitrary_urls = false  # false: only URLs seen in results / fetched pages
+respect_robots = true
+strip_suspicious = false      # true: drop passages that look like prompt injection
+
+[domains]
+deny = []
+allow = []                    # non-empty => strict allowlist for fetching
+prefer = ["docs.python.org", "github.com", "*.gov", "*.edu", "arxiv.org", "wikipedia.org"]
+require_approval = ["x.com", "twitter.com", "facebook.com", "linkedin.com", "instagram.com"]
+
+[fetch]
+timeout_seconds = 15
+max_bytes = 5000000
+max_redirects = 5
+max_pdf_pages = 30
+allowed_ports = [80, 443, 8080, 8443]
+user_agent = "web-mcp/0.1 (+local research agent)"
+unsafe_allow_private = false  # DANGEROUS: disables SSRF protection
+
+[cache]
+enabled = true
+ttl_hours = 24
+path = "~/.cache/web-mcp/cache.db"
+
+[state]
+path = "~/.local/state/web-mcp/state.db"
+
+[audit]
+enabled = true
+path = "~/.local/state/web-mcp/audit.jsonl"
